@@ -24,8 +24,6 @@
 
         import spark.components.Alert;
 
-        [Embed(source="../../../../../resources/assets/sound/usb1.mp3")]
-        private var soundClass:Class;
         [Bindable] private var _netConnection:NetConnection;
         [Bindable] private var _netStream:NetStream;
         [Bindable] private var _msgString:String;

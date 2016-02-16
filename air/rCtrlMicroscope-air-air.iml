@@ -68,10 +68,10 @@
             <entry library-name="Maven: org.apache.flex.framework:spark:rb.swc:4.14.1" library-level="project">
               <dependency linkage="Merged" />
             </entry>
-            <entry library-name="Maven: org.apache.flex.framework:spark_dmv:swc:4.14.1" library-level="project">
+            <entry library-name="Maven: org.apache.flex.framework:sparkskins:swc:4.14.1" library-level="project">
               <dependency linkage="Merged" />
             </entry>
-            <entry library-name="Maven: org.apache.flex.framework:sparkskins:swc:4.14.1" library-level="project">
+            <entry library-name="Maven: org.apache.flex.framework:spark_dmv:swc:4.14.1" library-level="project">
               <dependency linkage="Merged" />
             </entry>
             <entry library-name="Maven: org.apache.flex.framework:textLayout:swc:4.14.1" library-level="project">
@@ -123,7 +123,7 @@
               <dependency linkage="Merged" />
             </entry>
           </entries>
-          <sdk name="Flexmojos SDK 4.14.1 (1)" />
+          <sdk name="Flexmojos SDK 4.14.1" />
         </dependencies>
         <compiler-options>
           <map>
@@ -148,7 +148,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
-    <orderEntry type="jdk" jdkName="Flexmojos SDK 4.14.1 (1)" jdkType="Flexmojos SDK Type" />
+    <orderEntry type="jdk" jdkName="Flexmojos SDK 4.14.1" jdkType="Flexmojos SDK Type" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="Maven: org.apache.flex.framework:advancedgrids:swc:4.14.1" level="project" />
     <orderEntry type="library" exported="" name="Maven: org.apache.flex.framework:advancedgrids:rb.swc:4.14.1" level="project" />
@@ -169,8 +169,8 @@
     <orderEntry type="library" exported="" name="Maven: org.apache.flex.framework:rpc:rb.swc:4.14.1" level="project" />
     <orderEntry type="library" exported="" name="Maven: org.apache.flex.framework:spark:swc:4.14.1" level="project" />
     <orderEntry type="library" exported="" name="Maven: org.apache.flex.framework:spark:rb.swc:4.14.1" level="project" />
-    <orderEntry type="library" exported="" name="Maven: org.apache.flex.framework:spark_dmv:swc:4.14.1" level="project" />
     <orderEntry type="library" exported="" name="Maven: org.apache.flex.framework:sparkskins:swc:4.14.1" level="project" />
+    <orderEntry type="library" exported="" name="Maven: org.apache.flex.framework:spark_dmv:swc:4.14.1" level="project" />
     <orderEntry type="library" exported="" name="Maven: org.apache.flex.framework:textLayout:swc:4.14.1" level="project" />
     <orderEntry type="library" exported="" name="Maven: org.apache.flex.framework:textLayout:rb.swc:4.14.1" level="project" />
     <orderEntry type="library" exported="" name="Maven: org.apache.flex.framework:mx:swc:4.14.1" level="project" />

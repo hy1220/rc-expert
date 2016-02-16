@@ -11,16 +11,10 @@
 
 <fx:Script>
   <![CDATA[
-  //  import com.gxuwz.rctrlm.events.ConServerBarEvent;
-  //  import com.gxuwz.rctrlm.events.EventDispatcherFactory;
-  //  import com.gxuwz.rctrlm.presenter.ConServerBarPresenter;
+
   import com.gxuwz.rctrlm.events.ConServerBarEvent;
   import com.gxuwz.rctrlm.events.EventDispatcherFactory;
   import com.gxuwz.rctrlm.presenter.ConServerBarPresenter;
-
-  import mx.core.FlexGlobals;
-
-  import mx.managers.PopUpManager;
 
   import spark.components.Alert;
 
@@ -45,16 +39,12 @@
   private var conServerBarPresenter:ConServerBarPresenter;
 
 
-  [Bindable]
-  private var _cameraName:String;
+  [Bindable] private var _cameraName:String;
 
   /*************      listenEvent form connection         *************/
-  [Bindable]
-  private var _remoteUser:String;
-  [Bindable]
-  private var _netConnection:NetConnection;
-  [Bindable]
-  private var _netStream:NetConnection;
+  [Bindable] private var _remoteUser:String;
+  [Bindable] private var _netConnection:NetConnection;
+  [Bindable] private var _netStream:NetConnection;
 
   [Bindable]private var _ringerChooseBool:Boolean;
   private var ringer:Sound;
