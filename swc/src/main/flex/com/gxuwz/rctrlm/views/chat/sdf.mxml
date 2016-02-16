@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!--
+  Created by hy2 on 2016/1/24.
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark">
+  <fx:Script><![CDATA[
+    public function get remoteUser():String {
+      return _remoteUser;
+    }
+
+    public function set remoteUser(value:String):void {
+      _remoteUser = value;
+    }
+
+    public function get netConnection():NetConnection {
+      return _netConnection;
+    }
+
+    public function set netConnection(value:NetConnection):void {
+      _netConnection = value;
+    }
+
+    [Bindable]
+    private var _remoteUser:String;
+    [Bindable]
+    private var _netConnection:NetConnection;
+
+    [Bindable]
+    private var _netStream:NetConnection;
+    public function get netStream():NetConnection {
+      return _netStream;
+    }
+
+    public function set netStream(value:NetConnection):void {
+      _netStream = value;
+    }
+    ]]></fx:Script>
+</s:Group>

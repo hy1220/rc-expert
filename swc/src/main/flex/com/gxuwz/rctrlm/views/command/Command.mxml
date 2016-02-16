@@ -1,0 +1,564 @@
+<?xml version="1.0"?>
+<!--
+  Created by user on 2015/8/20.
+-->
+<s:BorderContainer xmlns:mx="library://ns.adobe.com/flex/mx"
+                   xmlns:fx="http://ns.adobe.com/mxml/2009"
+                   xmlns:s="library://ns.adobe.com/flex/spark"
+                   width="100%" height="100%"
+                   cornerRadius="5">
+    <!--creationComplete="importCommandFromXML()"-->
+
+    <fx:Script>
+    <![CDATA[
+        import spark.components.Alert;
+
+        //一般按钮事件
+                public const DIRECTED_DOWN:String = "$0MD30000000002!";
+                public const DIRECTED_UP:String = "$0MU30000000002!";
+                public const DIRECTED_LEFT:String = "$0MU40000000002!";
+                public const DIRECTED_RIGHT:String = "$0MD40000000002!";
+                public const FOCUS_ADD:String = "$0MU10000000015!";//焦距加
+                public const FOCUS_SUB:String = "$0MD10000000015!";//焦距减
+                public const OBJ_CON_ADD:String = "$0MU20000001600!";//物镜转换加
+                public const OBJ_CON_SUB:String = "$0MD20000001600!";//物镜转换减
+                public const CONDENSER_INSERT_ADD:String = "$0EU30000000090!";//聚光镜插入
+                public const CONDENSER_INSERT_SUB:String = "$0EU30000000000!";//聚光镜撤离
+                public const FOCAL_DISTANCE_ADD:String = "$0MU11000000000!";//聚焦升起粗调
+                public const FOCAL_DISTANCE_ADD_STOP:String = "$0MU12000000000!";//聚焦升停机
+                public const FOCAL_DISTANCE_SUB:String = "$0MD11000000000!";//聚焦降落粗调
+                public const FOCAL_DISTANCE_SUB_STOP:String = "$0MD12000000000!";//聚焦降停机
+                public const SET_DEFAULT:String = "$0EX00000000000!";//恢复参数设置
+                public const FOCUS_RESET:String = "$0MR10000000000!";//聚焦电机复位
+                public const OBJ_CON_RESET:String = "$0MR20000000000!";//物镜转换电机复位
+
+//        public var DIRECTED_DOWN:String;
+//        public var DIRECTED_UP:String;
+//        public var DIRECTED_LEFT:String;
+//        public var DIRECTED_RIGHT:String;
+//        public var FOCUS_ADD:String;//焦距加
+//        public var FOCUS_SUB:String;//焦距减
+//        public var OBJ_CON_ADD:String;//物镜转换加
+//        public var OBJ_CON_SUB:String;//物镜转换减
+//        public var CONDENSER_INSERT_ADD:String;//聚光镜插入
+//        public var CONDENSER_INSERT_SUB:String;//聚光镜撤离
+//        public var FOCAL_DISTANCE_ADD:String;//聚焦升起粗调
+//        public var FOCAL_DISTANCE_ADD_STOP:String;//聚焦升停机
+//        public var FOCAL_DISTANCE_SUB:String;//聚焦降落粗调
+//        public var FOCAL_DISTANCE_SUB_STOP:String;//聚焦降停机
+//        public var SET_DEFAULT:String;//恢复参数设置
+//        public var FOCUS_RESET:String;//聚焦电机复位
+//        public var OBJ_CON_RESET:String;//物镜转换电机复位
+
+        //部件调节
+        public var value:Number = 0;
+        public const SUB:int = 0;
+        public const ADD:int = 1;
+
+        private var parameterFile:File;
+        private var parameterStream:FileStream;
+        [Bindable]
+        private var parameterXML:XML;
+
+        //////////////////////////参数设定///////////////////////////////////////////////
+                public const FOUS_ACCELERATION:String = "$0MA100000";//焦电机加速度
+                public const FOUS_DECELERATION:String = "$0MC100000";//焦电机减速度
+                public const FOUS_RUN_SPEED:String = "$0MS100000";//焦电机运行速度
+                public const STAGETR_ACCELERATION:String = "$0MA300000";//载物台横向电机加速度
+                public const STAGETR_DECELERATION:String = "$0MC300000";//载物台横向电机减速度
+                public const STAGETR_RUN_SPEED:String = "$0MS300000";//载物台横向电机运行速度
+                public const STAGELT_ACCELERATION:String = "$0MA400000";//载物台纵向电机加速度
+                public const STAGELT_DECELERATION:String = "$0MC400000";//载物台纵向电机减速度
+                public const STAGELT_RUN_SPEED:String = "$0MS400000";//载物台纵向电机运行速度
+                public const OBJLEN_ACCELERATION:String = "$0MA200000";//物镜转换电机加速度
+                public const OBJLEN_DECELERATION:String = "$0MC200000";//物镜转换电机减速度
+                public const OBJLEN_RUN_SPEED:String = "$0MS200000";//物镜转换电机运行速度
+
+//        public var FOUS_ACCELERATION:String;//焦电机加速度
+//        public var FOUS_DECELERATION:String;//焦电机减速度
+//        public var FOUS_RUN_SPEED:String;//焦电机运行速度
+//        public var STAGETR_ACCELERATION:String;//载物台横向电机加速度
+//        public var STAGETR_DECELERATION:String;//载物台横向电机减速度
+//        public var STAGETR_RUN_SPEED:String;//载物台横向电机运行速度
+//        public var STAGELT_ACCELERATION:String;//载物台纵向电机加速度
+//        public var STAGELT_DECELERATION:String;//载物台纵向电机减速度
+//        public var STAGELT_RUN_SPEED:String;//载物台纵向电机运行速度
+//        public var OBJLEN_ACCELERATION:String;//物镜转换电机加速度
+//        public var OBJLEN_DECELERATION:String;//物镜转换电机减速度
+//        public var OBJLEN_RUN_SPEED:String;//物镜转换电机运行速度
+
+        //[Embed(source="../../../../../../resources/test.jpg")] 可读
+        //[Embed(source="../../../../../../resources/parameterXML.xml")]
+        [Bindable]
+        private var _remoteUser:String;
+        [Bindable]
+        private var _netConnection:NetConnection;
+
+        public function get netConnection():NetConnection {
+            return _netConnection;
+        }
+
+        public function set netConnection(value:NetConnection):void {
+            _netConnection = value;
+        }
+
+        public function get remoteUser():String {
+            return _remoteUser;
+        }
+
+        public function set remoteUser(value:String):void {
+            _remoteUser = value;
+        }
+
+        //        private function importCommandFromXML():void {
+        ////            var file:File = File.documentsDirectory;
+        ////            var filter:FileFilter = new FileFilter("Open XML File", "*.xml");
+        ////            file.browseForOpen("Open and Import XML File", new Array(filter));
+        ////            file.addEventListener(Event.SELECT, onHandlerSelect);
+        //          try{
+        //              parameterFile=new File(File.documentsDirectory.resolvePath("commandParameterXML.xml").nativePath);
+        //              loaderXMLFile();
+        //          }catch(e:IOErrorEvent){
+        //              Alert.show("无法打开文件");
+        //          }
+        //
+        //        }
+
+        /**
+         * the transition function which get parameter from the select file
+         * @param event
+         */
+        //        private function onHandlerSelect(event:Event):void {
+        //            try {
+        //                var filePath:File = event.target as File;
+        //                loaderXMLFile(filePath.nativePath.toString());
+        //            } catch (e:IOErrorEvent) {
+        //                Alert.show("导入的XML文件路径出错");
+        //            }
+        //        }
+
+        /**
+         * @get the xml path from transition function
+         * @ the function aid to load the xml data
+         * @param e
+         */
+//        private function loaderXMLFile(path:String):void {
+        //    private function loaderXMLFile():void {
+//        private function importCommandFromXML():void {
+//            var xmlLoader:URLLoader = new URLLoader();
+//            // var request:URLRequest = new URLRequest(path);
+//            var request:URLRequest = new URLRequest(File.documentsDirectory.resolvePath("commandParameterXML.xml").nativePath);
+//            xmlLoader.load(request);
+//            xmlLoader.addEventListener(Event.COMPLETE, parseXMLFile);
+//            parameterStream=new FileStream();
+//            try{
+//                parameterStream.open(parameterFile,FileMode.WRITE);
+//                parseXMLFile();
+//            }catch(e:IOError){
+//                Alert.show("打开文件出错");
+//            }
+//    }
+
+//        private function parseXMLFile(e:Event):void {
+//        private function parseXMLFile():void {
+//            Alert.show("执行到这里");
+//            trace(parameterStream.bytesAvailable+"..............................");
+//            parameterXML=XML(parameterStream.readUTFBytes(parameterStream.bytesAvailable));
+//            parameterStream.close();
+//            if(parameterXML!=null || parameterXML!=""){
+//                try{
+//                    setParameter()
+//                }catch(e:IOErrorEvent){
+//                    Alert.show("执行出错");
+//                }
+//            }
+//            var loader:URLLoader = e.target as URLLoader;
+//            if (loader != null) {
+//                var xml:XML = new XML(loader.data);
+////                显微镜方向命令
+//                DIRECTED_DOWN = xml.command.DIRECTED_DOWN;
+//                DIRECTED_UP = xml.command.DIRECTED_UP;
+//                DIRECTED_LEFT = xml.command.DIRECTED_LEFT;
+//                DIRECTED_RIGHT = xml.command.DIRECTED_RIGHT;
+//                FOCUS_ADD = xml.command.FOCUS_ADD;
+//                FOCUS_SUB = xml.command.FOCUS_SUB;
+//                OBJ_CON_ADD = xml.command.OBJ_CON_ADD;
+//                OBJ_CON_SUB = xml.command.OBJ_CON_SUB;
+//                CONDENSER_INSERT_ADD = xml.command.CONDENSER_INSERT_ADD;
+//                CONDENSER_INSERT_SUB = xml.command.CONDENSER_INSERT_SUB;
+//                FOCAL_DISTANCE_ADD = xml.command.FOCAL_DISTANCE_ADD;
+//                FOCAL_DISTANCE_ADD = xml.command.FOCAL_DISTANCE_ADD;
+//                FOCAL_DISTANCE_ADD_STOP = xml.command.FOCAL_DISTANCE_ADD_STOP;
+//                FOCAL_DISTANCE_SUB = xml.command.FOCAL_DISTANCE_SUB;
+//                FOCAL_DISTANCE_SUB_STOP = xml.command.FOCAL_DISTANCE_SUB_STOP;
+//                SET_DEFAULT = xml.command.SET_DEFAULT;
+//                FOCUS_RESET = xml.command.FOCUS_RESET;
+//                OBJ_CON_RESET = xml.command.OBJ_CON_RESET;
+//                trace(OBJ_CON_RESET + "===========OBJ_CON_RESET");
+//
+//                FOUS_ACCELERATION=xml.command.FOUS_ACCELERATION;
+//                FOUS_DECELERATION=xml.command.FOUS_DECELERATION;
+//                FOUS_RUN_SPEED=xml.command.FOUS_RUN_SPEED;
+//                STAGETR_ACCELERATION=xml.command.STAGETR_ACCELERATION;//载物台横向电机加速度
+//                STAGETR_DECELERATION=xml.command.STAGETR_DECELERATION;//载物台横向电机减速度
+//                STAGETR_RUN_SPEED=xml.command.STAGETR_RUN_SPEED;//载物台横向电机运行速度
+//                STAGELT_ACCELERATION=xml.command.STAGELT_ACCELERATION;//载物台纵向电机加速度
+//                STAGELT_DECELERATION=xml.command.STAGELT_DECELERATION;//载物台纵向电机减速度
+//                STAGELT_RUN_SPEED=xml.command.STAGELT_RUN_SPEED;//载物台纵向电机运行速度
+//                OBJLEN_ACCELERATION=xml.command.OBJLEN_ACCELERATION;//物镜转换电机加速度
+//                OBJLEN_DECELERATION=xml.command.OBJLEN_DECELERATION;//物镜转换电机减速度
+//                OBJLEN_RUN_SPEED=xml.command.OBJLEN_RUN_SPEED;//物镜转换电机运行速度
+//
+//                trace(OBJLEN_RUN_SPEED+"=============OBJLEN_RUN_SPEED");
+//            }
+//        }
+
+//        private function setParameter():void {
+//            DIRECTED_DOWN = parameterXML.command.DIRECTED_DOWN;
+//            DIRECTED_UP = parameterXML.command.DIRECTED_UP;
+//            DIRECTED_LEFT = parameterXML.command.DIRECTED_LEFT;
+//            DIRECTED_RIGHT = parameterXML.command.DIRECTED_RIGHT;
+//            FOCUS_ADD = parameterXML.command.FOCUS_ADD;
+//            FOCUS_SUB = parameterXML.command.FOCUS_SUB;
+//            OBJ_CON_ADD = parameterXML.command.OBJ_CON_ADD;
+//            OBJ_CON_SUB = parameterXML.command.OBJ_CON_SUB;
+//            CONDENSER_INSERT_ADD = parameterXML.command.CONDENSER_INSERT_ADD;
+//            CONDENSER_INSERT_SUB = parameterXML.command.CONDENSER_INSERT_SUB;
+//            FOCAL_DISTANCE_ADD = parameterXML.command.FOCAL_DISTANCE_ADD;
+//            FOCAL_DISTANCE_ADD = parameterXML.command.FOCAL_DISTANCE_ADD;
+//            FOCAL_DISTANCE_ADD_STOP = parameterXML.command.FOCAL_DISTANCE_ADD_STOP;
+//            FOCAL_DISTANCE_SUB = parameterXML.command.FOCAL_DISTANCE_SUB;
+//            FOCAL_DISTANCE_SUB_STOP = parameterXML.command.FOCAL_DISTANCE_SUB_STOP;
+//            SET_DEFAULT = parameterXML.command.SET_DEFAULT;
+//            FOCUS_RESET = parameterXML.command.FOCUS_RESET;
+//            OBJ_CON_RESET = parameterXML.command.OBJ_CON_RESET;
+//        }
+
+        private function sendCommandToControl(commandStr:String):void{
+            try{
+                _netConnection.call("sendCommand",null,commandStr,_remoteUser);
+            }catch(e:ErrorEvent){
+                Alert.show("在命令控制板中发送命令失败","提示");
+            }
+
+
+        }
+        //载物台后移
+        protected function backward_clickHandler(event:MouseEvent):void {
+            var str:String = DIRECTED_DOWN;
+           // _netStream.send("command", str);
+           sendCommandToControl(str);
+        }
+
+        //载物台前移
+        protected function forward_clickHandler(event:MouseEvent):void {
+            var str:String = DIRECTED_UP;
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+        }
+
+        //载物台左移
+        protected function left_clickHandler(event:MouseEvent):void {
+            var str:String = DIRECTED_LEFT;
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+            trace(str+"  左移的按钮");
+        }
+
+        //载物台右移
+        protected function right_clickHandler(event:MouseEvent):void {
+            var str:String = DIRECTED_RIGHT;
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+        }
+
+        //聚焦加
+        protected function focus_add_clickHandler(event:MouseEvent):void {
+            var str:String = FOCUS_ADD;
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+        }
+
+        //聚焦减
+        protected function focus_sub_clickHandler(event:MouseEvent):void {
+            var str:String = FOCUS_SUB;
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+        }
+
+        //聚光器上升
+        public var condenser:Number = 0;
+
+        protected function condenser_add_clickHandler(event:MouseEvent):void {
+            var str:String;
+            condenser = condenser - condenser_vslider.value;
+            if (condenser <= 0) {
+                condenser = 0;
+            }
+            if (condenser <= 9) {
+                str = "$0EU2000000000" + condenser + "!";
+            }
+            else if (condenser >= 10 && condenser < 100) {
+                str = "$0EU200000000" + condenser + "!";
+            }
+            else if (condenser >= 100 && condenser < 180) {
+                str = "$0EU20000000" + condenser + "!";
+            }
+            else if (condenser >= 180) {
+                str = "$0EU20000000180!";
+            }
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+        }
+
+        //聚光器下降
+        protected function condenser_sub_clickHandler(event:MouseEvent):void {
+            var str:String;
+            condenser = condenser + condenser_vslider.value;
+            if (condenser >= 180) {
+                condenser = 180;
+            }
+            if (condenser <= 9) {
+
+                str = "$0EU2000000000" + condenser + "!";
+            }
+            else if (condenser >= 10 && condenser < 100) {
+                str = "$0EU200000000" + condenser + "!";
+            }
+            else if (condenser >= 100 && condenser < 180) {
+                str = "$0EU20000000" + condenser + "!";
+            }
+            else if (condenser >= 180) {
+                str = "$0EU20000000180!";
+            }
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+        }
+
+        //聚光镜光栏大
+        public var spot_light_add:Number = 0;
+
+        protected function spot_light_bar_add_clickHandler(event:MouseEvent):void {
+            var str:String;
+            spot_light_add = spot_light_add - light_bar_vslider.value;
+            if (spot_light_add <= 0) {
+                spot_light_add = 0;
+            }
+            if (spot_light_add <= 9) {
+                str = "$0EU4000000000" + spot_light_add + "!";
+            }
+            else if (spot_light_add >= 10 && spot_light_add < 100) {
+                str = "$0EU400000000" + spot_light_add + "!";
+            }
+            else if (spot_light_add >= 100 && spot_light_add < 180) {
+                str = "$0EU40000000" + spot_light_add + "!";
+            }
+            else if (spot_light_add >= 180) {
+                spot_light_add = 180;
+                str = "$0EU40000000180!";
+            }
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+        }
+
+        //聚光镜光栏小
+        protected function spot_light_bar_sub_clickHandler(event:MouseEvent):void {
+            var str:String;
+            spot_light_add = spot_light_add + light_bar_vslider.value;
+            if (spot_light_add >= 180) {
+                spot_light_add = 180;
+            }
+            if (spot_light_add <= 9) {
+                str = "$0EU4000000000" + spot_light_add + "!";
+            }
+            else if (spot_light_add >= 10 && spot_light_add < 100) {
+                str = "$0EU400000000" + spot_light_add + "!";
+            }
+            else if (spot_light_add >= 100 && spot_light_add < 180) {
+                str = "$0EU40000000" + spot_light_add + "!";
+            }
+            else if (spot_light_add >= 180) {
+                str = "$0EU40000000180!";
+            }
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+        }
+
+        //集光镜光栏大
+        public var set_light:Number = 0;
+
+        protected function set_light_bar_add_clickHandler(event:MouseEvent):void {
+            var str:String;
+            set_light = set_light + light_bar_vslider.value;
+            if (set_light >= 180) {
+                set_light = 180;
+            }
+            if (set_light <= 9) {
+                str = "$0EU5000000000" + set_light + "!";
+            }
+            else if (set_light >= 10 && set_light < 100) {
+                str = "$0EU500000000" + set_light + "!";
+            }
+            else if (set_light >= 100 && set_light < 180) {
+                str = "$0EU50000000" + set_light + "!";
+            }
+            else if (set_light >= 180) {
+                str = "$0EU50000000180!";
+            }
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+        }
+
+        //集光镜光栏小
+        protected function set_light_bar_sub_clickHandler(event:MouseEvent):void {
+            var str:String;
+            set_light = set_light - light_bar_vslider.value;
+            if (set_light < 0) {
+                set_light = 0;
+            }
+            if (set_light <= 9) {
+
+                str = "$0EU5000000000" + set_light + "!";
+            }
+            else if (set_light >= 10 && set_light < 100) {
+                str = "$0EU500000000" + set_light + "!";
+            }
+            else if (set_light >= 100 && set_light < 180) {
+                str = "$0EU50000000" + set_light + "!";
+            }
+            else if (set_light >= 180) {
+                str = "$0EU50000000180!";
+            }
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+        }
+
+        //物镜转换加
+        protected function obj_con_add_clickHandler(event:MouseEvent):void {
+            var str:String = OBJ_CON_ADD;
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+        }
+
+        //物镜转换减
+        protected function obj_con_sub_clickHandler(event:MouseEvent):void {
+            var str:String = OBJ_CON_SUB;
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+        }
+
+
+        //聚光镜插入
+        protected function condenser_insert_add_clickHandler(event:MouseEvent):void {
+            var str:String = CONDENSER_INSERT_ADD;
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+        }
+
+        //聚光镜撤离
+        protected function condenser_insert_sub_clickHandler(event:MouseEvent):void {
+            var str:String = CONDENSER_INSERT_SUB;
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+        }
+
+        //背光亮度增加
+        public var backlight:Number = 0;
+
+        protected function backlight_add_clickHandler(event:MouseEvent):void {
+            var str:String;
+            backlight = backlight + 10;
+            if (backlight > 180) {
+                backlight = 180;
+            }
+            if (backlight <= 9) {
+                str = "$0EU100000000" + backlight + "!";
+            }
+            else if (backlight >= 10 && backlight < 100) {
+                str = "$0EU100000000" + backlight + "!";
+            }
+            else if (backlight >= 100 && backlight < 180) {
+                str = "$0EU10000000" + backlight + "!";
+            }
+            else if (backlight >= 180) {
+
+                str = "$0EU10000000180!";
+            }
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+        }
+
+        //背光亮度减弱
+        protected function backlight_sub_clickHandler(event:MouseEvent):void {
+            var str:String;
+            backlight = backlight - 10;
+            if (backlight < 0) {
+                backlight = 0;
+            }
+            if (backlight <= 9) {
+
+                str = "$0EU1000000000" + backlight + "!";
+            }
+            else if (backlight >= 10 && backlight < 100) {
+                str = "$0EU100000000" + backlight + "!";
+            }
+            else if (backlight >= 100 && backlight < 180) {
+                str = "$0EU10000000" + backlight + "!";
+            }
+            else if (backlight >= 180) {
+                str = "$0EU10000000180!";
+            }
+//            _netStream.send("command", str);
+            sendCommandToControl(str);
+        }
+        ]]>
+  </fx:Script>
+
+    <s:Button id="backward" x="53" y="5" width="50" height="21" label="后移"
+              click="backward_clickHandler(event)"/>
+    <s:Button id="forward" x="53" y="68" width="54" height="20" label="前移"
+              click="forward_clickHandler(event)"/>
+    <s:Button id="left" x="6" y="39" width="49" label="左移"
+              click="left_clickHandler(event)"/>
+    <s:Button id="right" x="101" y="39" width="51" label="右移"
+              click="right_clickHandler(event)"/>
+    <s:RichText x="53" y="104" fontSize="14" text="平台控制"/>
+    <s:Button x="10" y="145" width="49" height="19" label="聚焦+"/>
+    <s:Button id="focus_sub" x="10" y="172" width="58" height="20"
+              label="聚焦-" click="focus_sub_clickHandler(event)"/>
+    <s:Button id="focus_add" x="10" y="145" width="57" height="19"
+              label="聚焦+" click="focus_add_clickHandler(event)"/>
+    <s:Button id="condenser_add" x="178" y="143" width="87" height="19"
+              label="聚光器升" click="condenser_add_clickHandler(event)"/>
+    <s:Button id="condenser_sub" x="180" y="173" width="85" height="20"
+              label="聚光器降" click="condenser_sub_clickHandler(event)"/>
+    <s:Button id="spot_light_bar_add" x="174" y="6" width="95" height="19"
+              label="聚光镜光栏+" click="spot_light_bar_add_clickHandler(event)"/>
+    <s:Button id="spot_light_bar_sub" x="174" y="33" width="95" height="20"
+              label="聚光镜光栏-" click="spot_light_bar_sub_clickHandler(event)"/>
+    <s:Button id="set_light_bar_add" x="175" y="68" width="95" label="集光镜光栏+"
+              click="set_light_bar_add_clickHandler(event)"/>
+    <s:Button id="set_light_bar_sub" x="175" y="97" width="95"
+              label="集光镜光栏-" click="set_light_bar_sub_clickHandler(event)"/>
+    <s:Button id="obj_con_add" x="79" y="144" width="90" label="物镜转换+"
+              click="obj_con_add_clickHandler(event)"/>
+    <s:Button id="obj_con_sub" x="79" y="172" width="90" label="物镜转换-"
+              click="obj_con_sub_clickHandler(event)"/>
+    <s:Button id="backlight_add" x="180" y="209" width="90" label="背光亮度加"
+              click="backlight_add_clickHandler(event)"/>
+    <s:Button id="backlight_sub" x="180" y="239" width="90" label="背光亮度减"
+              click="backlight_sub_clickHandler(event)"/>
+    <s:Button id="condenser_insert_add" x="10" y="209" width="90" label="聚光镜插入"
+              click="condenser_insert_add_clickHandler(event)"/>
+    <s:Button id="condenser_insert_sub" x="10" y="239" width="90" label="聚光镜撤离"
+              click="condenser_insert_sub_clickHandler(event)"/>
+    <s:VSlider id="light_bar_vslider" x="286" y="19" height="70" maximum="20" minimum="1"
+               stepSize="1"/>
+    <s:RichText x="286" y="5" width="12" height="10" fontSize="16" text="+"/>
+    <s:RichText x="287" y="94" fontSize="20" text="-"/>
+    <s:RichText x="288" y="194" fontSize="20" text="-"/>
+    <s:VSlider id="condenser_vslider" x="287" y="137" height="53" maximum="20" minimum="1"
+               stepSize="1" value="1"/>
+    <s:RichText x="286" y="123" width="12" height="10" fontSize="16" text="+"/>
+</s:BorderContainer>
+

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Flexmojos is a set of maven goals to allow maven users to compile, optimize and test Flex SWF, Flex SWC, Air SWF and Air SWC.
+    Copyright (C) 2008-2012  Marvin Froeder <marvin@flexmojos.net>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <!--<groupId>gxuwz.dspLab.remoteCtrlMicroscope</groupId>-->
+        <!--<artifactId>rCtrlMicroscope-air</artifactId>-->
+        <!--<version>1.0-SNAPSHOT</version>-->
+        <groupId>gxuwz.dspLab.remoteCtrlMicroscope</groupId>
+        <artifactId>rCtrlMicroscope-air-expert</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>rCtrlMicroscope-air-swc</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <packaging>swc</packaging>
+
+    <build>
+        <finalName>Msctril.bin</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources/bin</directory>
+                <includes>
+                    <include>**/*.zip</include>
+                    <include>**/*.jpg</include>
+                    <include>**/*.db</include>
+                    <include>**/*.dll</include>
+
+                    <include>**/*.MB</include>
+                    <include>**/*.PX</include>
+                    <include>**/*.VAL</include>
+                    <include>**/*.tmdb</include>
+
+                    <include>**/*.tmval</include>
+                    <include>**/*.tmpx</include>
+                    <include>**/*.exe</include>
+                    <include>**/*.ini</include>
+                </includes>
+            </resource>
+
+           <resource>
+               <directory>src/main/resources/assets</directory>
+               <includes>
+                    <include>**/*.xml</include>
+                   <include>*.xml</include>
+               </includes>
+           </resource>
+
+            <resource>
+                <directory>src/main/resources/configure</directory>
+                <includes>
+                    <include>*.xml</include>
+                    <include>*.jpg</include>
+                    <include>**/*.xml</include>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <!-- add maven-resources-plugin-->
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.7</version>
+
+                <executions>
+                    <execution>
+                        <id>copy resources</id>
+                        <!--<phase>process-resources</phase>-->
+                       <goals>
+                           <goal>copy-resources</goal>
+                       </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/classes</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/src/main/flex</directory>
+                                    <directory>${basedir}/src/main/resources</directory>
+                                    <includes>
+                                        <include>**/*.xml</include>
+                                        <include>**/*.jpg</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+
+    </build>
+
+</project>

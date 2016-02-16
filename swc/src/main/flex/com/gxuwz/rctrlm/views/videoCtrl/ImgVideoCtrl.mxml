@@ -1,0 +1,368 @@
+<?xml version="1.0"?>
+<!--
+  Created by user on 2015/8/23.
+-->
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:s="library://ns.adobe.com/flex/spark"
+                xmlns:videoContext="com.gxuwz.rctrlm.views.videoCtrl.*"
+                xmlns:img="com.gxuwz.rctrlm.views.imgShowList.*"
+                xmlns:command="com.gxuwz.rctrlm.views.command.*"
+                xmlns:mx="library://ns.adobe.com/flex/mx"
+                xmlns:sendPanel="com.gxuwz.rctrlm.views.chat.*"
+                creationComplete="creationCompleteHandler()">
+
+
+    <fx:Script><![CDATA[
+        import com.gxuwz.rctrlm.events.ConServerBarEvent;
+        import com.gxuwz.rctrlm.events.EventDispatcherFactory;
+        import com.gxuwz.rctrlm.events.SendPanelEvent;
+        import com.gxuwz.rctrlm.model.Services;
+        import com.gxuwz.rctrlm.utils.WriteToText;
+        import com.gxuwz.rctrlm.views.imgShowList.ImageShow;
+
+        import mx.controls.Alert;
+        import mx.core.SoundAsset;
+
+        /**
+         * 调用融合图片主程序的exe所需的全局变量
+         */
+        public var _process:NativeProcess = new NativeProcess();
+
+        [Embed(source="../../../../../../resources/assets/sound/msgS.mp3")]
+        private var soundClass:Class;
+
+        [Bindable] private var outStream:NetStream;
+
+        [Bindable] private var inStream:NetStream;
+        [Bindable] private var _netConnection:NetConnection;
+        [Bindable] private var _playOff:Boolean;
+
+        public function get netConnection():NetConnection {
+            return _netConnection;
+        }
+
+        public function set netConnection(value:NetConnection):void {
+            _netConnection = value;
+        }
+
+        public function get playOff():Boolean {
+            return _playOff;
+        }
+
+        public function set playOff(value:Boolean):void {
+            WriteToText.writeToTxtLog("介绍视频流和发布音频流");
+            _playOff = value;
+            if (_playOff == true) {
+                //play netStream;
+                playNetStream();
+            } else if(_playOff==false){
+                inStream=null;
+                outStream=null;
+            }
+        }
+
+        private function creationCompleteHandler():void {
+            EventDispatcherFactory.getEventDispatcher()
+                    .addEventListener(ConServerBarEvent.SHOW_MESSAGE_EVENT,
+                    showMessageEventHandler);
+        }
+
+        private function getNetObjectHandler(e:ConServerBarEvent):void {
+            _netConnection = e.netConnection;
+        }
+
+        private function picHandler_takePicEventHandler():void {
+
+            var bmpd:BitmapData = new BitmapData(vdCtrl.localVdCam_vd.width, vdCtrl.localVdCam_vd.height);
+            try {
+                bmpd.draw(vdCtrl.localVdCam_vd);
+            }
+            catch (e:Error) {
+                Alert.show("安全沙箱出错!");
+            }
+
+            var imgShow:ImageShow = new ImageShow();  //取得相片并保存
+            imgShow.image.source = bmpd;
+            imgShwList.addElement(imgShow);
+            imgShow.addEventListener("onDeleteImgShowEvent", deleteBitmap, false, 0, true);
+            imgShow.addEventListener("onSelectedImgEvent", selectedBitmap, false, 0, true);
+            imgShow.addEventListener("onCancelSelectedImgEvent", cancelSelectedBitmap, false, 0, true);
+            imgShow.addEventListener("onSaveImgEvent", saveBitmap, false, 0, true);
+        }
+
+        /**删除，函数
+         *点击删除按钮删除位图。
+         */
+        public function deleteBitmap(event:Event):void {
+
+            var imgSh:ImageShow = event.currentTarget as ImageShow;
+            if (imgSh.selected_chb.selected) {
+
+                imgSh.selected_chb.selected = false;
+                imgShwList.removeElement(event.currentTarget as ImageShow);
+
+                imgShwList.selectedImgNumber = imgShwList.selectedImgNumber - 1;
+                switch (imgShwList.selectedImgNumber) {
+                    case 0:
+                        picHandler.edit_bt.enabled = false;
+                        picHandler.merge_bt.enabled = false;
+                        break;
+                    case 1:
+                        picHandler.edit_bt.enabled = true;
+                        picHandler.merge_bt.enabled = true;
+                        break;
+                    case 2:
+                    case 3:
+                        picHandler.edit_bt.enabled = false;
+                        picHandler.merge_bt.enabled = true;
+                        break;
+                }
+            } else {
+                imgShwList.removeElement(event.currentTarget as ImageShow);
+            }
+        }
+
+        public function selectedBitmap(event:Event):void {
+
+            imgShwList.selectedImgNumber = imgShwList.selectedImgNumber + 1;
+            if (imgShwList.selectedImgNumber == 1) {
+                picHandler.edit_bt.enabled = true;
+            }
+            if (imgShwList.selectedImgNumber >= 2) {
+                picHandler.edit_bt.enabled = false;
+                picHandler.merge_bt.enabled = true;
+            }
+            if (imgShwList.selectedImgNumber > 3) {
+                Alert.show("你已经选择了3张图片，不能再选择了！");
+                imgShwList.selectedImgNumber = imgShwList.selectedImgNumber - 1;
+                var imgsh:ImageShow = event.currentTarget as ImageShow;
+                imgsh.selected_chb.selected = false;
+            }
+        }
+
+        public function cancelSelectedBitmap(event:Event):void {
+            imgShwList.selectedImgNumber = imgShwList.selectedImgNumber - 1;
+            if (imgShwList.selectedImgNumber == 0) {
+                picHandler.edit_bt.enabled = false;
+            }
+            if (imgShwList.selectedImgNumber == 1) {
+                picHandler.edit_bt.enabled = true;
+            }
+            if (imgShwList.selectedImgNumber >= 2) {
+                picHandler.edit_bt.enabled = false;
+                picHandler.merge_bt.enabled = true;
+            }
+
+        }
+
+        public function saveBitmap(event:Event):void {
+
+            var imgSh:ImageShow = event.currentTarget as ImageShow;
+            imgSh.save();
+        }
+
+        protected function exit_bt_clickHandler():void {
+            // TODO Auto-generated method stub
+            if (_process)
+                _process.exit(false);
+        }
+
+        protected function edit_bt_clickHandler():void {
+            // TODO Auto-generated method stub
+            for (var i:int = 0; i < imgShwList.numElements; i++) {
+                var imgSh:ImageShow = imgShwList.getElementAt(i) as ImageShow;
+                imgSh.dispatchEvent(new Event("onSaveImgEvent"));
+            }
+            msctrlEXE(1);
+        }
+
+        protected function merge_bt_clickHandler():void {
+            // TODO Auto-generated method stub
+            trace("imgShwList.numElements:" + imgShwList.numElements);
+            for (var i:int = 0; i < imgShwList.numElements; i++) {
+                var imgSh:ImageShow = imgShwList.getElementAt(i) as ImageShow;
+                imgSh.dispatchEvent(new Event("onSaveImgEvent"));
+            }
+            msctrlEXE(2);
+        }
+
+        private function msctrlEXE(number:int):void {
+            var _processArgs:Vector.<String> = new Vector.<String>();
+            var _nativeProcessStartupInfo:NativeProcessStartupInfo = new NativeProcessStartupInfo();
+            // _nativeProcessStartupInfo.executable = File.applicationDirectory.resolvePath("G:/projects/microscope/rCtrlMicroscope-air-expert/swc/src/main/resources/bin/MSCtrl.exe");
+            _nativeProcessStartupInfo.executable = File.applicationDirectory.resolvePath("bin/MSCtrl.exe");
+            _processArgs.push(number);
+            _nativeProcessStartupInfo.arguments = _processArgs;
+
+            trace("arguments:" + _nativeProcessStartupInfo.arguments);
+            try {
+                if (_process)
+                    _process.start(_nativeProcessStartupInfo);
+            } catch (e:Error) {
+                if (_process) {
+                    Alert.show("图片处理程序已经在运行!");
+                }
+            }
+        }
+
+        /**
+         * 视频播放
+         */
+        private function playNetStream():void {
+            WriteToText.writeToTxtLog("连接状态"+_netConnection.toString()+" 正在尝试打开连接视频和发布音频");
+            try {
+
+                var mic:Microphone = Microphone.getEnhancedMicrophone();
+                mic.gain=50;
+
+                inStream=new NetStream(_netConnection);
+                inStream.client=new Services();
+                inStream.play("media-call"); //play the video
+                var video:Video = new Video();
+                video.width = vdCtrl.localVdCam_vd.width;
+                video.height = vdCtrl.localVdCam_vd.height;
+                video.attachNetStream(inStream);
+                vdCtrl.localVdCam_vd.addChild(video);
+
+                outStream = new NetStream(_netConnection);
+                outStream.client=new Services();
+                outStream.attachAudio(mic);
+                outStream.publish("media-sound");
+
+            } catch (e:ErrorEvent) {
+                Alert.show("打开耳麦或者接收视频出错!");
+            }
+
+        }
+
+        /*****************     对话面板      *************************/
+        [Bindable]
+        private var _connected:String = "UnConnected";
+        [Bindable]
+        private var _remoteUser:String;
+
+        public function get remoteUser():String {
+            return _remoteUser;
+        }
+
+        public function set remoteUser(value:String):void {
+            _remoteUser = value;
+        }
+
+        private function showMessageEventHandler(e:ConServerBarEvent):void {
+            var ding:SoundAsset = new soundClass() as SoundAsset;
+            ding.play(5);
+            _remoteUser = e.remoteUser;
+            msgArea.text += _remoteUser + "  :  " + e.data + "\n";
+            msgArea.scroller.verticalScrollBar.value=msgArea
+                    .scroller.verticalScrollBar.maximum;
+        }
+
+
+        private function sendMessageEventHandler(event:SendPanelEvent):void {
+            trace(event._msg + "=====msg");
+            trace(_remoteUser + " remote user")
+            _netConnection.call("sendMsg", null, _remoteUser, event._msg);
+            msgArea.text += "我 :  " + event._msg + "\n";
+            sendPanel.say.text = "";
+            msgArea.scroller.verticalScrollBar.value=msgArea
+                    .scroller.verticalScrollBar.maximum;
+        }
+
+        /*********************    对话            ******************************/
+        ]]>
+    </fx:Script>
+
+
+    <s:HGroup width="100%" height="80%">
+
+    <videoContext:VideoCtrl id="vdCtrl" width="75%" height="100%" netConnection="{_netConnection}"/>
+
+   <s:Panel width="25%" height="100%" cornerRadius="5" title="显微镜控制">
+
+       <s:layout>
+           <s:VerticalLayout paddingLeft="2" paddingBottom="2" paddingTop="2" paddingRight="2"/>
+       </s:layout>
+       <command:Command width="100%" height="100%"
+                        remoteUser="{_remoteUser}"
+                        netConnection="{_netConnection}"/>
+
+   </s:Panel>
+
+  </s:HGroup>
+
+ <s:HGroup width="100%" height="20%">
+
+         <img:ImageBox id="imgShwList"
+                       width="100%" height="100%"
+                       cornerRadius="5"/>
+
+         <img:PicHandler id="picHandler"
+                         cornerRadius="5"
+                         editorPicEvent="edit_bt_clickHandler()"
+                         exitPicEvent="exit_bt_clickHandler()"
+                         mergePicEvent="merge_bt_clickHandler()"
+                         takePicEvent="picHandler_takePicEventHandler()"/>
+
+     <!--对话面板-->
+     <s:VGroup  width="40%" height="100%">
+         <s:HGroup width="100%" height="100%">
+
+             <s:TextArea width="100%" id="msgArea" height="100%" />
+
+             <!--<s:Panel width="25%" height="100%"-->
+             <!--cornerRadius="5">-->
+             <!--<s:layout>-->
+             <!--<s:VerticalLayout paddingBottom="5" paddingRight="5" paddingTop="5" paddingLeft="5"/>-->
+             <!--</s:layout>-->
+
+             <!--<s:Label text="当前连接状态  :  {_connected}"/>-->
+             <!--<s:Label text="当前连接用户  :  {_remoteUser}"/>-->
+             <!--</s:Panel>-->
+
+         </s:HGroup>
+
+         <sendPanel:SendPanel
+                 width="100%" id="sendPanel"
+                 sendMessageEvent="sendMessageEventHandler(event)"/>
+     </s:VGroup>
+
+ </s:HGroup>
+  <!--<mx:HDividedBox width="100%" height="25%">-->
+
+      <!--<img:ImageBox id="imgShwList"-->
+                    <!--width="75%" height="100%"/>-->
+
+      <!--<img:PicHandler id="picHandler"-->
+                      <!--cornerRadius="5"-->
+                      <!--width="25%" height="100%"-->
+                      <!--editorPicEvent="edit_bt_clickHandler()"-->
+                      <!--exitPicEvent="exit_bt_clickHandler()"-->
+                      <!--mergePicEvent="merge_bt_clickHandler()"-->
+                      <!--takePicEvent="picHandler_takePicEventHandler()"/>-->
+
+  <!--</mx:HDividedBox>-->
+
+    <!--&lt;!&ndash;对话面板&ndash;&gt;-->
+    <!--<s:VGroup  width="40%" height="100%">-->
+        <!--<s:HGroup width="100%" height="100%">-->
+
+            <!--<s:TextArea width="100%" id="msgArea" height="100%" />-->
+
+            <!--&lt;!&ndash;<s:Panel width="25%" height="100%"&ndash;&gt;-->
+            <!--&lt;!&ndash;cornerRadius="5">&ndash;&gt;-->
+            <!--&lt;!&ndash;<s:layout>&ndash;&gt;-->
+            <!--&lt;!&ndash;<s:VerticalLayout paddingBottom="5" paddingRight="5" paddingTop="5" paddingLeft="5"/>&ndash;&gt;-->
+            <!--&lt;!&ndash;</s:layout>&ndash;&gt;-->
+
+            <!--&lt;!&ndash;<s:Label text="当前连接状态  :  {_connected}"/>&ndash;&gt;-->
+            <!--&lt;!&ndash;<s:Label text="当前连接用户  :  {_remoteUser}"/>&ndash;&gt;-->
+            <!--&lt;!&ndash;</s:Panel>&ndash;&gt;-->
+
+        <!--</s:HGroup>-->
+
+        <!--<sendPanel:SendPanel-->
+                <!--width="100%" id="sendPanel"-->
+                <!--sendMessageEvent="sendMessageEventHandler(event)"/>-->
+    <!--</s:VGroup>-->
+</s:VGroup>
