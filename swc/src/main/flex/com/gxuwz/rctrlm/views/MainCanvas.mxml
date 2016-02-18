@@ -12,10 +12,13 @@
           initialize="initializeHandler()">
 
     <!-- 专家端程序  -->
-
     <fx:Script><![CDATA[
         import com.gxuwz.rctrlm.events.ConServerBarEvent;
         import com.gxuwz.rctrlm.events.EventDispatcherFactory;
+        import com.gxuwz.rctrlm.events.UserAddEvent;
+        import com.gxuwz.rctrlm.model.Services;
+
+        import mx.collections.ArrayCollection;
 
         import mx.core.SoundAsset;
 
@@ -24,55 +27,64 @@
 
         import spark.components.Alert;
 
-        [Bindable] private var _netConnection:NetConnection;
-        [Bindable] private var _netStream:NetStream;
+//        [Bindable] private var _netConnection:NetConnection;
+//        [Bindable] private var _netStream:NetStream;
         [Bindable] private var _msgString:String;
         [Bindable] private var _remoteUser:String;
         [Bindable] private var _playOff:Boolean = false;//连接视频流服务
+        [Bindable] private var netConn:NetConnection;
+        [Bindable] private var netStr:NetStream;
+        [Bindable] private var userList:ArrayCollection;
+
 
         private function initializeHandler():void {
-            EventDispatcherFactory.getEventDispatcher()
-                    .addEventListener(ConServerBarEvent.CHANGE_STATUS_TO_CALL_READY,
-                    changeStatusEventHandler);
-            EventDispatcherFactory.getEventDispatcher()
-                    .addEventListener(ConServerBarEvent.TRY_CALLUSER_EVENT,
-                    callUserEventHandler, false, 0, true);
+//            EventDispatcherFactory.getEventDispatcher()
+//                    .addEventListener(ConServerBarEvent.CHANGE_STATUS_TO_CALL_READY,
+//                    changeStatusEventHandler);
+//            EventDispatcherFactory.getEventDispatcher()
+//                    .addEventListener(ConServerBarEvent.TRY_CALLUSER_EVENT,
+//                    callUserEventHandler, false, 0, true);
             EventDispatcherFactory.getEventDispatcher()
                     .addEventListener(ConServerBarEvent.PLAY_VIDEO_EVENT,
                     relayCallEvent, false, 0, true);
+            //add connection to service user
             EventDispatcherFactory.getEventDispatcher()
-                    .addEventListener(ConServerBarEvent.TRY_DISCONNECT_SERVER_EVENT,
-                    tryDisconnectServerHandler, false, 0, true);
+                    .addEventListener(UserAddEvent.USER_CONNECTION_WITH_SERVICE,
+                    userConnectWithServiceEventHandler);
+//            EventDispatcherFactory.getEventDispatcher()
+//                    .addEventListener(ConServerBarEvent.TRY_DISCONNECT_SERVER_EVENT,
+//                    tryDisconnectServerHandler, false, 0, true);
+            userList=new ArrayCollection();
         }
 
         /**
          * change connect statue
          * @param e
          */
-        private function changeStatusEventHandler(e:ConServerBarEvent):void {
-            _netConnection = e.netConnection;
-            if (_netConnection) {
-                //success in connect to rtmp server
-                csBar.currentState = csBar.loginConnected;
-                imgVideoCtrl.enabled = true;
-            } else {
-                trace("nothing have done in main page");
-            }
-        }
+//        private function changeStatusEventHandler(e:ConServerBarEvent):void {
+//            _netConnection = e.netConnection;
+//            if (_netConnection) {
+//                //success in connect to rtmp server
+//                csBar.currentState = csBar.loginConnected;
+//                imgVideoCtrl.enabled = true;
+//            } else {
+//                trace("nothing have done in main page");
+//            }
+//        }
 
         /**
          * call remote user
          * @param evt
          */
-        private function callUserEventHandler(evt:ConServerBarEvent):void {
-            trace(" try to " + evt.remoteUser + "   :" + evt.action + "call  remote user and");
-            _remoteUser = evt.remoteUser;
-            if (evt.action == "Invite") {
-                _netConnection.call("callUser", null, evt.remoteUser, evt.action);
-            } else if (evt.action == "Reject") {
-                Alert.show("对方退出远程连接");
-            }
-        }
+//        private function callUserEventHandler(evt:ConServerBarEvent):void {
+//            trace(" try to " + evt.remoteUser + "   :" + evt.action + "call  remote user and");
+//            _remoteUser = evt.remoteUser;
+//            if (evt.action == "Invite") {
+//                _netConnection.call("callUser", null, evt.remoteUser, evt.action);
+//            } else if (evt.action == "Reject") {
+//                Alert.show("对方退出远程连接");
+//            }
+//        }
 
         /**
          * reply the remote caller
@@ -81,16 +93,18 @@
         private function relayCallEvent(evt:ConServerBarEvent):void {
             _remoteUser = evt.remoteUser;
             if (evt.action == "Invite") {
-                csBar.ringerChooseBool=true;
-                Alert.show(_remoteUser + "邀请你远程视频\n是否同意？", "是", Alert.YES | Alert.NO, this, alertHandler);
+                csBar.ringerChooseBool = true;
+                Alert.show(_remoteUser + "邀请您远程控制\n是否同意？", "提示", Alert.YES | Alert.NO, this, alertHandler);
             } else if (evt.action == "Reject") {
-                Alert.show("对方已经断开远程!!\n若要恢复，请重新让对方邀请");
-                csBar.currentState=csBar.loginConnected;
+                Alert.show("对方已经断开远程!\n若要恢复，请重新让对方邀请");
+                csBar.currentState = csBar.loginConnected;
+                _playOff = false;
+                csBar.ringerChooseBool = false;
+            } else if (evt.action == "Disconnect") {
+                Alert.show("对方终止连接", "提示");
                 _playOff=false;
-                csBar.ringerChooseBool=false;
-            } else if(evt.action=="Disconnect"){
-                tryDisconnectServerHandler();
-                Alert.show("网络通信出现故障!\n已断开连接","提示");
+                netConn.close();
+                netConn=null;
             }
         }
 
@@ -98,49 +112,103 @@
 
             if (event.detail == Alert.YES) {
                 //the video will be publish
-                csBar.currentState=csBar.callEstablished;
-                csBar.ringerChooseBool=false;
-            _netConnection = null;
-            _playOff = true;
-            _netConnection.call("callUser", null, _remoteUser, "Accept");
-        }
-        else {
-            _netConnection.call("callUser", null, _remoteUser, "Reject");
-            csBar.currentState=csBar.loginConnected;
-            _playOff=false;
-        }
+                csBar.currentState = csBar.callEstablished;
+                csBar.ringerChooseBool = false;
+                _playOff = true;
+                imgVideoCtrl.enabled=true;
+                netConn.call("callUser", null, _remoteUser, "Accept");
+            }
+            else {
+//                _netConnection.call("callUser", null, _remoteUser, "Reject");
+                netConn.call("callUser", null, _remoteUser, "Reject");
+                csBar.currentState = csBar.loginConnected;
+                _playOff = false;
+            }
         }
 
+//        private function tryDisconnectServerHandler(e:ConServerBarEvent = null):void {
+//            //断开连接，通知对方
+//            _netConnection.call("callUser", null, _remoteUser, "Reject");
+//            csBar.currentState = csBar.loginNotConnected;
+//            imgVideoCtrl.enabled = false;
+//            csBar.ringerChooseBool = false;
+//            _netConnection.close();
+//        }
 
-        private function tryDisconnectServerHandler(e:ConServerBarEvent = null):void {
-            //断开连接，通知对方
-            _netConnection.call("callUser", null, _remoteUser, "Reject");
+        /**
+         * connection to server
+         * @param event
+         */
+        private function csBar_ConnectToServerEventHandler(event:MouseEvent):void {
+            netConn = new NetConnection();
+            netConn.client = new Services();
+            netConn.addEventListener(NetStatusEvent.NET_STATUS, netConnectionStatusHandler);
+            try {
+                netConn.connect(csBar.serverAddrInput.text); //连接网络
+            } catch (e:Error) {
+                Alert.show("连接服务失败", "提示");
+            }
+        }
+
+        /**
+         * 1. connect to server success ,the user login
+         * 2. if connect success ,the csBar currentstatus will be change
+         * @param e
+         */
+        private function netConnectionStatusHandler(e:NetStatusEvent):void {
+            var netStatus:String = e.info.code as String;
+            switch (netStatus) {
+                case "NetConnection.Connect.Success":
+                    netConn.call("onIdentification", null, csBar.userNameInput.text);
+                    break;
+                case "NetConnection.Connect.Closed":
+                case "NetConnection.Connect.Failed":
+                    Alert.show("连接失败", "提示");
+                    break;
+            }
+        }
+
+        //check  and add user
+        private function userConnectWithServiceEventHandler(evt:UserAddEvent):void {
+
+            if (evt.action = "connection") {
+                if ((evt.user).toString() != (csBar.userNameInput.text).toString());
+                userList.addItem(evt.user);
+                csBar.currentState = csBar.callReady; //状态改变
+            } else {
+                var index:int = userList.getItemIndex(evt.user);
+                if (index > -1)
+                    userList.removeItemAt(index);
+            }
+            trace(userList + " user in mainCanvas");
+        }
+
+        /**
+         *
+         * @param event
+         */
+        private function csBar_DisconnectToServerEventHandler(event:MouseEvent):void {
+            netConn.call("callUser", null, _remoteUser, "Disconnect");
             csBar.currentState = csBar.loginNotConnected;
-            imgVideoCtrl.enabled = false;
-            csBar.ringerChooseBool=false;
-            _netConnection.close();
+            csBar.ringerChooseBool = false;
+//            netConn.close();
         }
-
         ]]>
     </fx:Script>
 
     <!-- 登录-->
     <conserverbar:ConServerBar id="csBar" width="100%"
+                               DisconnectToServerEvent="csBar_DisconnectToServerEventHandler(event)"
+                               ConnectToServerEvent="csBar_ConnectToServerEventHandler(event)"
                                remoteUser="{_remoteUser}"
-                               netConnection="{_netConnection}" />
+                               netConnection="{netConn}" />
     <mx:VDividedBox width="100%" height="100%">
         <videoCtrl:ImgVideoCtrl id="imgVideoCtrl"
                                 width="100%" height="100%"
                                 enabled="false"
-                                netConnection="{_netConnection}"
+                                netConnection="{netConn}"
                                 remoteUser="{_remoteUser}"
                                 playOff="{_playOff}"/>
-
-        <!--<chat:Chat id="chat"-->
-                   <!--width="100%"-->
-                   <!--remoteUser="{_remoteUser}"-->
-                   <!--netConnection="{_netConnection}"-->
-                   <!--enabled="false"/>-->
     </mx:VDividedBox>
 
 </s:VGroup>

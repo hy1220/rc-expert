@@ -46,7 +46,7 @@
   [Bindable] private var _netConnection:NetConnection;
   [Bindable] private var _netStream:NetConnection;
 
-  [Bindable]private var _ringerChooseBool:Boolean;
+  [Bindable] private var _ringerChooseBool:Boolean;
   private var ringer:Sound;
   private var ringerChannel:SoundChannel;
   public function get ringerChooseBool():Boolean
@@ -157,11 +157,16 @@
    * 2.创建一个 NetConnection 对象，并为将来连接到这个对象的对象创建一个Object对象及其方法。调用 connect() 方法以建立连接。
    */
   private function onConnect():void {
-    trace("dispatch conserver event");
-    var event:ConServerBarEvent = new ConServerBarEvent(ConServerBarEvent.TRY_CONNECT_SERVER_EVENT);//尝试连连服务
-    event.connectURL = serverAddrInput.text;
-    event.userName = userNameInput.text;
-    EventDispatcherFactory.getEventDispatcher().dispatchEvent(event);
+//    var event:ConServerBarEvent = new ConServerBarEvent(ConServerBarEvent.TRY_CONNECT_SERVER_EVENT);//尝试连连服务
+//    event.connectURL = serverAddrInput.text;
+//    event.userName = userNameInput.text;
+//    EventDispatcherFactory.getEventDispatcher().dispatchEvent(event);
+//    dispatchEvent(new MouseEvent("ConnectToServerEvent"))
+    if((serverAddrInput.text).length>0 && (userNameInput.text).length>0){
+      dispatchEvent(new MouseEvent("ConnectToServerEvent"));
+    } else{
+      Alert.show("请输入服务器地址和用户名");
+    }
   }
 
   /**
@@ -172,9 +177,10 @@
    * 3.断开服务
    */
   private function onDisconnect():void {
-    trace("Disconnecting.\n");
-    var event:ConServerBarEvent = new ConServerBarEvent(ConServerBarEvent.TRY_DISCONNECT_SERVER_EVENT);//尝试断开连接
-    EventDispatcherFactory.getEventDispatcher().dispatchEvent(event);
+//    trace("Disconnecting.\n");
+//    var event:ConServerBarEvent = new ConServerBarEvent(ConServerBarEvent.TRY_DISCONNECT_SERVER_EVENT);//尝试断开连接
+//    EventDispatcherFactory.getEventDispatcher().dispatchEvent(event);
+    dispatchEvent(new MouseEvent("DisconnectToServerEvent"));
   }
 
   /**
@@ -224,6 +230,11 @@
 
   ]]>
 </fx:Script>
+
+  <fx:Metadata>
+    [Event(name="ConnectToServerEvent", type="flash.events.MouseEvent")]
+    [Event(name="DisconnectToServerEvent", type="flash.events.MouseEvent")]
+  </fx:Metadata>
 
   <s:states>
     <s:State name="LoginNotConnected"/>
@@ -293,13 +304,13 @@
   <!--Call Established pane -->
   <s:HGroup includeIn="CallEstablished" verticalAlign="middle">
     <s:Label text="Called  {calleeInput.text}"  />
-    <s:Button label="挂断" click="onCancel()"/>
+    <s:Button label="中断呼叫" click="onDisconnect()"/>
     <s:Label id="callTimerText" width="25"/>
   </s:HGroup>
 
   <s:HGroup includeIn="CallFailed" verticalAlign="middle">
     <s:Label text="呼叫 {calleeInput.text}错误" />
-    <s:Button label="挂断" click="onCancel()"/>
+    <s:Button label="中断呼叫" click="onDisconnect()"/>
   </s:HGroup>
 
   <s:Button id="chat" includeIn="CallEstablished" label="交流" click="chat_clickHandler(event)"/>

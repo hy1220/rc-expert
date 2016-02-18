@@ -27,6 +27,7 @@
 
     [Bindable] private var _netStream:NetStream;
     [Bindable] private var _netConnection:NetConnection;
+    [Bindable] private var _remoteUser:String;
     public function get netConnection():NetConnection {
       return _netConnection;
     }
@@ -34,6 +35,13 @@
     public function set netConnection(value:NetConnection):void {
       _netConnection = value;
       //_netStream=new NetStream(_netConnection);
+    }
+    public function get remoteUser():String {
+      return _remoteUser;
+    }
+
+    public function set remoteUser(value:String):void {
+      _remoteUser = value;
     }
 
     protected function creationCompleteHandler(event:FlexEvent):void {
@@ -115,8 +123,11 @@
     }
 
     private function onMouseUp(e:MouseEvent):void {
-      if (cmdString && _netStream)
-        _netStream.send("command",cmdString);
+      if (cmdString){
+//        _netConnection.call("sendMsg", null, _remoteUser, event._msg);
+        _netConnection.call("sendCommand",null,cmdString,_remoteUser);
+      }
+
       cmdString = null;
       lineLabel.text = "";
 

@@ -18,12 +18,11 @@ public class Services {
 
     public function onRelay(action:String,user:String):void{
 
-        trace(user+" call  you  " +action);
+        trace(action+" call  you  " +user);
         var evt:ConServerBarEvent =new ConServerBarEvent(ConServerBarEvent.PLAY_VIDEO_EVENT);//尝试连连服务
         evt.remoteUser=user;
         evt.action=action;
         EventDispatcherFactory.getEventDispatcher().dispatchEvent(evt);
-
     }
 
     public function showMsg(fromUser:String,msg:String):void{
@@ -35,9 +34,18 @@ public class Services {
         EventDispatcherFactory.getEventDispatcher().dispatchEvent(event);
     }
 
+    public function onEvent(event:String, nameUser:String):void {
+        trace(event+".........."+nameUser);
+        var e:UserAddEvent=new UserAddEvent(UserAddEvent.USER_CONNECTION_WITH_SERVICE);
+        e.action=event;
+        e.user=nameUser;
+        EventDispatcherFactory.getEventDispatcher().dispatchEvent(e);
+    }
 
-    public function onSendCommand(commandStr:String,expertFrom:String):void{
-      Alert.show("Command String"+commandStr+" expertfrom "+expertFrom);
+    // Write message to the text area
+    public function onReception(prompt:String, message:String):void {
+//        discussion.text += prompt + message + "\n";
+        trace(prompt +";d "+ message+"dsdd");
     }
 
 }

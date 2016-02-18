@@ -13,7 +13,7 @@
       import com.gxuwz.rctrlm.events.ConServerBarEvent;
       import com.gxuwz.rctrlm.events.EventDispatcherFactory;
       import com.gxuwz.rctrlm.events.SendPanelEvent;
-      import com.gxuwz.rctrlm.views.conServerBar.ImportWindow;
+//      import com.gxuwz.rctrlm.views.conServerBar.ImportWindow;
 
       import mx.core.FlexGlobals;
 
@@ -79,18 +79,18 @@
 //          sendPanel.say.text="";
       }
 
-      private var pop:ImportWindow;
+//      private var pop:ImportWindow;
 
       private function flicker_clickHandler(event:MouseEvent):void {
-          pop = ImportWindow(PopUpManager.createPopUp(this, ImportWindow, false));
-          PopUpManager.centerPopUp(pop);
-          //居中显示
-          pop.x = FlexGlobals.topLevelApplication.stage.stageWidth / 2 - pop.width / 2;
-          pop.y = FlexGlobals.topLevelApplication.stage.stageHeight / 2 - pop.height / 2;
-
-          pop.remoteUser=_remoteUser;
-          pop.netConnection=_netConnection;
-          pop.msg=msg;
+//          pop = ImportWindow(PopUpManager.createPopUp(this, ImportWindow, false));
+//          PopUpManager.centerPopUp(pop);
+//          //居中显示
+//          pop.x = FlexGlobals.topLevelApplication.stage.stageWidth / 2 - pop.width / 2;
+//          pop.y = FlexGlobals.topLevelApplication.stage.stageHeight / 2 - pop.height / 2;
+//
+//          pop.remoteUser=_remoteUser;
+//          pop.netConnection=_netConnection;
+//          pop.msg=msg;
       }
 
       private function label1_clickHandler(event:MouseEvent):void {
