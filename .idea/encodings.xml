@@ -3,6 +3,7 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/air" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/air/src/main/resources/bin" charset="GBK" />
     <file url="file://$PROJECT_DIR$/swc" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/swc/src/main/flex/com/gxuwz/rctrlm/model/Objective.as" charset="GBK" />
     <file url="file://$PROJECT_DIR$/swc/src/main/flex/com/gxuwz/rctrlm/model/Regulate.as" charset="GBK" />

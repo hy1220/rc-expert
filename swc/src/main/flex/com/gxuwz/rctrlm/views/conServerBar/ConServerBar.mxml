@@ -249,9 +249,9 @@
   </s:states>
 
   <!-- Login pane -->
-  <s:HGroup includeIn="LoginNotConnected" verticalAlign="middle"  paddingLeft="2" paddingRight="2" width="80%">
+  <s:HGroup includeIn="LoginNotConnected" verticalAlign="middle"  paddingLeft="2" paddingRight="2" width="75%">
     <s:Label text="连接地址" toolTip="请输入连接地址"/>
-    <s:TextInput id="serverAddrInput" text="rtmp://Server Address:ServerPort/Service" width="100%" />
+    <s:TextInput id="serverAddrInput" text="rtmp://210.36.200.41:1935/RCtrlMicroscope" width="100%" />
     <s:Label  text="用户名"  toolTip="请输入用户名"/>
     <s:TextInput id="userNameInput" width="160" text="User Name" enter="{userNameInput.text.length > 0?onConnect():setFocus()}"/>
     <s:Button label="连接"  id="conButton" click="onConnect()" enabled="{userNameInput.text.length > 0}"/>
@@ -259,8 +259,9 @@
   </s:HGroup>
 
   <!-- Login Connecting pane -->
-  <s:HGroup includeIn="LoginConnecting" verticalAlign="middle">
-    <s:Label text="连接到 {userNameInput.text}" />
+  <s:HGroup includeIn="LoginConnecting" verticalAlign="middle" padding="3">
+    <s:Label text="正在连接到 {serverAddrInput.text}" />
+    <s:Spacer height="100%" width="50"/>
     <s:Button label="取消" click="onDisconnect()" />
 
   </s:HGroup>

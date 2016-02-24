@@ -27,23 +27,17 @@
 
         import spark.components.Alert;
 
-//        [Bindable] private var _netConnection:NetConnection;
-//        [Bindable] private var _netStream:NetStream;
+        //        [Bindable] private var _netConnection:NetConnection;
+        //        [Bindable] private var _netStream:NetStream;
         [Bindable] private var _msgString:String;
         [Bindable] private var _remoteUser:String;
         [Bindable] private var _playOff:Boolean = false;//连接视频流服务
         [Bindable] private var netConn:NetConnection;
         [Bindable] private var netStr:NetStream;
         [Bindable] private var userList:ArrayCollection;
-
+        [Bindable] private var timer:Timer;
 
         private function initializeHandler():void {
-//            EventDispatcherFactory.getEventDispatcher()
-//                    .addEventListener(ConServerBarEvent.CHANGE_STATUS_TO_CALL_READY,
-//                    changeStatusEventHandler);
-//            EventDispatcherFactory.getEventDispatcher()
-//                    .addEventListener(ConServerBarEvent.TRY_CALLUSER_EVENT,
-//                    callUserEventHandler, false, 0, true);
             EventDispatcherFactory.getEventDispatcher()
                     .addEventListener(ConServerBarEvent.PLAY_VIDEO_EVENT,
                     relayCallEvent, false, 0, true);
@@ -51,46 +45,16 @@
             EventDispatcherFactory.getEventDispatcher()
                     .addEventListener(UserAddEvent.USER_CONNECTION_WITH_SERVICE,
                     userConnectWithServiceEventHandler);
-//            EventDispatcherFactory.getEventDispatcher()
-//                    .addEventListener(ConServerBarEvent.TRY_DISCONNECT_SERVER_EVENT,
-//                    tryDisconnectServerHandler, false, 0, true);
-            userList=new ArrayCollection();
+            userList = new ArrayCollection();
         }
 
-        /**
-         * change connect statue
-         * @param e
-         */
-//        private function changeStatusEventHandler(e:ConServerBarEvent):void {
-//            _netConnection = e.netConnection;
-//            if (_netConnection) {
-//                //success in connect to rtmp server
-//                csBar.currentState = csBar.loginConnected;
-//                imgVideoCtrl.enabled = true;
-//            } else {
-//                trace("nothing have done in main page");
-//            }
-//        }
-
-        /**
-         * call remote user
-         * @param evt
-         */
-//        private function callUserEventHandler(evt:ConServerBarEvent):void {
-//            trace(" try to " + evt.remoteUser + "   :" + evt.action + "call  remote user and");
-//            _remoteUser = evt.remoteUser;
-//            if (evt.action == "Invite") {
-//                _netConnection.call("callUser", null, evt.remoteUser, evt.action);
-//            } else if (evt.action == "Reject") {
-//                Alert.show("对方退出远程连接");
-//            }
-//        }
 
         /**
          * reply the remote caller
          * @param evt
          */
         private function relayCallEvent(evt:ConServerBarEvent):void {
+            trace(evt.remoteUser + "from  remoteUser")
             _remoteUser = evt.remoteUser;
             if (evt.action == "Invite") {
                 csBar.ringerChooseBool = true;
@@ -102,9 +66,9 @@
                 csBar.ringerChooseBool = false;
             } else if (evt.action == "Disconnect") {
                 Alert.show("对方终止连接", "提示");
-                _playOff=false;
+                _playOff = false;
                 netConn.close();
-                netConn=null;
+                netConn = null;
             }
         }
 
@@ -115,25 +79,15 @@
                 csBar.currentState = csBar.callEstablished;
                 csBar.ringerChooseBool = false;
                 _playOff = true;
-                imgVideoCtrl.enabled=true;
+                imgVideoCtrl.enabled = true;
                 netConn.call("callUser", null, _remoteUser, "Accept");
             }
             else {
-//                _netConnection.call("callUser", null, _remoteUser, "Reject");
                 netConn.call("callUser", null, _remoteUser, "Reject");
                 csBar.currentState = csBar.loginConnected;
                 _playOff = false;
             }
         }
-
-//        private function tryDisconnectServerHandler(e:ConServerBarEvent = null):void {
-//            //断开连接，通知对方
-//            _netConnection.call("callUser", null, _remoteUser, "Reject");
-//            csBar.currentState = csBar.loginNotConnected;
-//            imgVideoCtrl.enabled = false;
-//            csBar.ringerChooseBool = false;
-//            _netConnection.close();
-//        }
 
         /**
          * connection to server
@@ -145,6 +99,7 @@
             netConn.addEventListener(NetStatusEvent.NET_STATUS, netConnectionStatusHandler);
             try {
                 netConn.connect(csBar.serverAddrInput.text); //连接网络
+                csBar.currentState=csBar.loginConnecting;
             } catch (e:Error) {
                 Alert.show("连接服务失败", "提示");
             }
@@ -160,21 +115,38 @@
             switch (netStatus) {
                 case "NetConnection.Connect.Success":
                     netConn.call("onIdentification", null, csBar.userNameInput.text);
+                    csBar.currentState = csBar.loginConnected; //状态改变
                     break;
                 case "NetConnection.Connect.Closed":
+                    Alert.show("连接关闭", "提示");
+                    csBar.currentState = csBar.loginNotConnected; //状态改变
+                    if(netConn){
+                        netConn.close();
+                        netConn=null;
+                    }
+                    break;
                 case "NetConnection.Connect.Failed":
                     Alert.show("连接失败", "提示");
+                    if(netConn){
+                        netConn.close();
+                        netConn=null;
+                    }
+                    csBar.currentState = csBar.loginNotConnected; //状态改变
                     break;
             }
         }
 
         //check  and add user
         private function userConnectWithServiceEventHandler(evt:UserAddEvent):void {
+            trace(evt.action + " from connection");
+            if (evt.action == "connection") {
+                trace("here " + (evt.user).toString() + "(csBar.userNameInput.text).toString()" + (csBar.userNameInput.text).toString());
+                if ((evt.user).toString() != (csBar.userNameInput.text).toString()) {
+                    userList.addItem(evt.user);
+                }
+                trace(userList + " userList from service");
+                csBar.currentState = csBar.loginConnected; //状态改变
 
-            if (evt.action = "connection") {
-                if ((evt.user).toString() != (csBar.userNameInput.text).toString());
-                userList.addItem(evt.user);
-                csBar.currentState = csBar.callReady; //状态改变
             } else {
                 var index:int = userList.getItemIndex(evt.user);
                 if (index > -1)
@@ -191,7 +163,8 @@
             netConn.call("callUser", null, _remoteUser, "Disconnect");
             csBar.currentState = csBar.loginNotConnected;
             csBar.ringerChooseBool = false;
-//            netConn.close();
+            netConn.close();
+            netConn=null;
         }
         ]]>
     </fx:Script>
